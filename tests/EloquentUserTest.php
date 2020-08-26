@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -102,14 +102,11 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
     {
         $user = new EloquentUser;
 
-        $user->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
-        $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
+        $this->addMockConnection($user);
         $user->getConnection()->shouldReceive('getName');
-        $user->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
-        $user->getConnection()->shouldReceive('getPostProcessor')->andReturn($processor = m::mock('Illuminate\Database\Query\Processors\Processor'));
         $user->getConnection()->getQueryGrammar()->shouldReceive('getDateFormat')->andReturn('Y-m-d H:i:s');
         $user->getConnection()->getQueryGrammar()->shouldReceive('compileInsertGetId');
-        $processor->shouldReceive('processInsertGetId')->andReturn(1);
+        $user->getConnection()->getPostProcessor()->shouldReceive('processInsertGetId')->andReturn(1);
 
         $user->save();
 
@@ -122,14 +119,11 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
         $user = new EloquentUser;
         $user->email = 'foo@example.com';
 
-        $user->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
-        $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
+        $this->addMockConnection($user);
         $user->getConnection()->shouldReceive('getName');
-        $user->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
-        $user->getConnection()->shouldReceive('getPostProcessor')->andReturn($processor = m::mock('Illuminate\Database\Query\Processors\Processor'));
         $user->getConnection()->getQueryGrammar()->shouldReceive('getDateFormat')->andReturn('Y-m-d H:i:s');
         $user->getConnection()->getQueryGrammar()->shouldReceive('compileInsertGetId');
-        $processor->shouldReceive('processInsertGetId')->andReturn(1);
+        $user->getConnection()->getPostProcessor()->shouldReceive('processInsertGetId')->andReturn(1);
 
         $user->save();
 
@@ -161,6 +155,8 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
     {
         $user = new EloquentUser;
 
+        $this->addMockConnection($user);
+
         $this->assertInstanceOf('Illuminate\Database\Eloquent\Relations\BelongsToMany', $user->roles());
     }
 
@@ -168,21 +164,21 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
     {
         $user = new EloquentUser;
 
+        $this->addMockConnection($user);
+
         $this->assertInstanceOf('Illuminate\Database\Eloquent\Relations\HasMany', $user->persistences());
     }
 
     public function testInRoleUsingRoleSlugs()
     {
         $user = new EloquentUser;
+        $user->id = 0;
 
-        $user->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
-        $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
+        $this->addMockConnection($user);
         $user->getConnection()->shouldReceive('getName');
-        $user->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
-        $user->getConnection()->shouldReceive('getPostProcessor')->andReturn($processor = m::mock('Illuminate\Database\Query\Processors\Processor'));
         $user->getConnection()->getQueryGrammar()->shouldReceive('getDateFormat')->andReturn('Y-m-d H:i:s');
         $user->getConnection()->getQueryGrammar()->shouldReceive('compileInsertGetId');
-        $processor->shouldReceive('processSelect')->andReturn([
+        $user->getConnection()->getPostProcessor()->shouldReceive('processSelect')->andReturn([
             [
                 'slug' => 'foobar',
             ],
@@ -206,15 +202,13 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
     public function testInRoleUsingRoleInstances()
     {
         $user = new EloquentUser;
+        $user->id = 0;
 
-        $user->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
-        $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
+        $this->addMockConnection($user);
         $user->getConnection()->shouldReceive('getName');
-        $user->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
-        $user->getConnection()->shouldReceive('getPostProcessor')->andReturn($processor = m::mock('Illuminate\Database\Query\Processors\Processor'));
         $user->getConnection()->getQueryGrammar()->shouldReceive('getDateFormat')->andReturn('Y-m-d H:i:s');
         $user->getConnection()->getQueryGrammar()->shouldReceive('compileInsertGetId');
-        $processor->shouldReceive('processSelect')->andReturn([
+        $user->getConnection()->getPostProcessor()->shouldReceive('processSelect')->andReturn([
             [
                 'id'   => 1,
                 'slug' => 'foobar',
@@ -264,6 +258,11 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
     {
         $user = new EloquentUser;
 
+        $this->addMockConnection($user);
+        $user->getConnection()->getPostProcessor()->shouldReceive('processSelect')->andReturn([]);
+        $user->getConnection()->shouldReceive('select');
+        $user->getConnection()->getQueryGrammar()->shouldReceive('compileSelect');
+
         $this->assertInstanceOf('Illuminate\Database\Eloquent\Collection', $user->getRoles());
     }
 
@@ -272,6 +271,7 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
         $user = m::mock('Cartalyst\Sentinel\Users\EloquentUser[roles,persistences,activations,reminders,throttle]');
         $user->exists = true;
 
+        $this->addMockConnection($user);
         $user->getConnection()->getQueryGrammar()->shouldReceive('compileDelete');
         $user->getConnection()->getQueryGrammar()->shouldReceive('prepareBindingsForDelete')->andReturn([]);
         $user->getConnection()->shouldReceive('delete')->once();
@@ -296,6 +296,14 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase
 
         $throttle->shouldReceive('delete')->once();
 
-        $user->delete();
+        $this->assertTrue($user->delete());
+    }
+
+    protected function addMockConnection($model)
+    {
+        $model->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
+        $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection')->makePartial());
+        $model->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
+        $model->getConnection()->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
     }
 }

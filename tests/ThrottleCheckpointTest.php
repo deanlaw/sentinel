@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -45,7 +45,9 @@ class ThrottleCheckpointTest extends PHPUnit_Framework_TestCase
         $throttle->shouldReceive('globalDelay')->once()->andReturn(0);
         $throttle->shouldReceive('userDelay')->once()->andReturn(0);
 
-        $checkpoint->login(m::mock('Cartalyst\Sentinel\Users\EloquentUser'));
+        $this->assertTrue(
+            $checkpoint->login(m::mock('Cartalyst\Sentinel\Users\EloquentUser'))
+        );
     }
 
     /**
@@ -64,7 +66,9 @@ class ThrottleCheckpointTest extends PHPUnit_Framework_TestCase
     {
         $checkpoint = new ThrottleCheckpoint($throttle = m::mock('Cartalyst\Sentinel\Throttling\IlluminateThrottleRepository'));
 
-        $checkpoint->check(m::mock('Cartalyst\Sentinel\Users\EloquentUser'));
+        $this->assertTrue(
+            $checkpoint->check(m::mock('Cartalyst\Sentinel\Users\EloquentUser'))
+        );
     }
 
     public function testFail()
@@ -75,7 +79,9 @@ class ThrottleCheckpointTest extends PHPUnit_Framework_TestCase
         $throttle->shouldReceive('userDelay')->once();
         $throttle->shouldReceive('log')->once();
 
-        $checkpoint->fail(m::mock('Cartalyst\Sentinel\Users\EloquentUser'));
+        $this->assertNull(
+            $checkpoint->fail(m::mock('Cartalyst\Sentinel\Users\EloquentUser'))
+        );
     }
 
     public function testWithIpAddress()
@@ -87,7 +93,9 @@ class ThrottleCheckpointTest extends PHPUnit_Framework_TestCase
         $throttle->shouldReceive('userDelay')->once();
         $throttle->shouldReceive('log')->once();
 
-        $checkpoint->fail(m::mock('Cartalyst\Sentinel\Users\EloquentUser'));
+        $this->assertNull(
+            $checkpoint->fail(m::mock('Cartalyst\Sentinel\Users\EloquentUser'))
+        );
     }
 
     /**
@@ -130,7 +138,7 @@ class ThrottleCheckpointTest extends PHPUnit_Framework_TestCase
         } catch (ThrottlingException $e) {
             $this->assertEquals(10, $e->getDelay());
             $this->assertEquals('user', $e->getType());
-            $this->assertEquals(Carbon::now()->addSeconds(10), $e->getFree());
+            $this->assertEquals(Carbon::now()->addSeconds(10), $e->getFree(), '', 1);
         }
     }
 }

@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -67,7 +67,8 @@ class Sentinel
      * Creates a new Native Bootstraper instance.
      *
      * @param  \Cartalyst\Sentinel\Native\SentinelBootstrapper  $bootstrapper
-     * @return void
+     *
+     * @return \Cartalyst\Sentinel\Native\SentinelBootstrapper
      */
     public static function instance(SentinelBootstrapper $bootstrapper = null)
     {

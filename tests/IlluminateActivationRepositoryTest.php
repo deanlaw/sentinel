@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -47,15 +47,18 @@ class IlluminateActivationRepositoryTest extends PHPUnit_Framework_TestCase
     {
         list($activations, $model, $query) = $this->getActivationMock();
 
-        $model->getConnection()->getQueryGrammar()->shouldReceive('getDateFormat')->andReturn('Y-m-d H:i:s');
-
-        $model->getConnection()->getPostProcessor()->shouldReceive('processInsertGetId')->once();
+        $model->shouldReceive('fill');
+        $model->shouldReceive('setAttribute');
+        $model->shouldReceive('save');
 
         $user = $this->getUserMock();
 
         $activation = $activations->create($user);
 
-        $this->assertInstanceOf('Cartalyst\Sentinel\Activations\EloquentActivation', $activation);
+        $this->assertInstanceOf(
+            'Cartalyst\Sentinel\Activations\EloquentActivation',
+            $activation
+        );
     }
 
     public function testExists()
@@ -117,11 +120,14 @@ class IlluminateActivationRepositoryTest extends PHPUnit_Framework_TestCase
 
         $query->shouldReceive('where')->with('user_id', '1')->andReturn($query);
         $query->shouldReceive('where')->with('completed', true)->andReturn($query);
-        $query->shouldReceive('first')->once();
+        $query->shouldReceive('first')->once()->andReturn($model);
 
         $user = $this->getUserMock();
 
-        $activations->completed($user);
+        $this->assertInstanceOf(
+            'Cartalyst\Sentinel\Activations\ActivationInterface',
+            $activations->completed($user)
+        );
     }
 
     public function testRemoveReturnsFalseIfNoCompleteActivationIsFound()
@@ -134,7 +140,7 @@ class IlluminateActivationRepositoryTest extends PHPUnit_Framework_TestCase
 
         $user = $this->getUserMock();
 
-        $activations->remove($user);
+        $this->assertFalse($activations->remove($user));
     }
 
     public function testRemoveValidActivation()
@@ -145,11 +151,11 @@ class IlluminateActivationRepositoryTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('where')->with('completed', true)->andReturn($query);
         $query->shouldReceive('first')->once()->andReturn($activation = m::mock('Cartalyst\Sentinel\Activations\EloquentActivation'));
 
-        $activation->shouldReceive('delete')->once();
+        $activation->shouldReceive('delete')->once()->andReturn(true);
 
         $user = $this->getUserMock();
 
-        $activations->remove($user);
+        $this->assertTrue($activations->remove($user));
     }
 
     public function testRemoveExpired()
@@ -168,10 +174,11 @@ class IlluminateActivationRepositoryTest extends PHPUnit_Framework_TestCase
     protected function getActivationMock()
     {
         $activations = m::mock('Cartalyst\Sentinel\Activations\IlluminateActivationRepository[createModel]');
-        $model       = m::mock('Cartalyst\Sentinel\Activations\EloquentActivation[newQuery]');
+        $model = m::mock('Cartalyst\Sentinel\Activations\EloquentActivation');
+        $query = m::mock('Illuminate\Database\Eloquent\Builder');
 
         $activations->shouldReceive('createModel')->andReturn($model);
-        $model->shouldReceive('newQuery')->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+        $model->shouldReceive('newQuery')->andReturn($query);
 
         return [$activations, $model, $query];
     }

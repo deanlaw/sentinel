@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -49,14 +49,18 @@ class IlluminateReminderRepositoryTest extends PHPUnit_Framework_TestCase
     {
         list($reminders, $users, $model, $query) = $this->getReminderMock();
 
-        $model->getConnection()->getQueryGrammar()->shouldReceive('getDateFormat')->andReturn('Y-m-d H:i:s');
-        $model->getConnection()->getPostProcessor()->shouldReceive('processInsertGetId')->once();
+        $model->shouldReceive('fill')->once();
+        $model->shouldReceive('setAttribute')->once();
+        $model->shouldReceive('save')->once();
 
         $user = $this->getUserMock();
 
         $activation = $reminders->create($user);
 
-        $this->assertInstanceOf('Cartalyst\Sentinel\Reminders\EloquentReminder', $activation);
+        $this->assertInstanceOf(
+            'Cartalyst\Sentinel\Reminders\EloquentReminder',
+            $activation
+        );
     }
 
     public function testExists()
@@ -149,12 +153,16 @@ class IlluminateReminderRepositoryTest extends PHPUnit_Framework_TestCase
 
     protected function getReminderMock()
     {
+        $model = m::mock('Cartalyst\Sentinel\Reminders\EloquentReminder');
+        $query = m::mock('Illuminate\Database\Eloquent\Builder');
         $users     = m::mock('Cartalyst\Sentinel\Users\IlluminateUserRepository');
-        $reminders = m::mock('Cartalyst\Sentinel\Reminders\IlluminateReminderRepository[createModel]', [$users]);
+        $reminders = m::mock(
+            'Cartalyst\Sentinel\Reminders\IlluminateReminderRepository[createModel]',
+            [$users]
+        );
 
-        $reminders->shouldReceive('createModel')->andReturn($model = m::mock('Cartalyst\Sentinel\Reminders\EloquentReminder[newQuery]'));
-
-        $model->shouldReceive('newQuery')->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+        $reminders->shouldReceive('createModel')->andReturn($model);
+        $model->shouldReceive('newQuery')->andReturn($query);
 
         return [$reminders, $users, $model, $query];
     }
@@ -176,4 +184,5 @@ class IlluminateReminderRepositoryTest extends PHPUnit_Framework_TestCase
             return true;
         }))->andReturn($query);
     }
+
 }

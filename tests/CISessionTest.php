@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -50,7 +50,7 @@ class CISessionTest extends PHPUnit_Framework_TestCase
     {
         $session = new CISession($store = m::mock('CI_Session'), 'foo');
         $store->shouldReceive('set_userdata')->with('foo', serialize('bar'))->once();
-        $session->put('bar');
+        $this->assertNull($session->put('bar'));
     }
 
     public function testGet()
@@ -64,6 +64,6 @@ class CISessionTest extends PHPUnit_Framework_TestCase
     {
         $session = new CISession($store = m::mock('CI_Session'), 'foo');
         $store->shouldReceive('unset_userdata')->with('foo')->once();
-        $session->forget();
+        $this->assertNull($session->forget());
     }
 }

@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -49,7 +49,10 @@ class CheckpointsTest extends PHPUnit_Framework_TestCase
 
         $sentinel->addCheckpoint('activation', $activationCheckpoint);
 
-        $sentinel->check();
+        $this->assertInstanceOf(
+            'Cartalyst\Sentinel\Users\UserInterface',
+            $sentinel->check()
+        );
     }
 
     public function testRemoveCheckpoint()
@@ -69,7 +72,10 @@ class CheckpointsTest extends PHPUnit_Framework_TestCase
 
         $sentinel->removeCheckpoint('activation');
 
-        $sentinel->check();
+        $this->assertInstanceOf(
+            'Cartalyst\Sentinel\Users\UserInterface',
+            $sentinel->check()
+        );
     }
 
     public function testBypassCheckpoint()
@@ -86,9 +92,12 @@ class CheckpointsTest extends PHPUnit_Framework_TestCase
         $sentinel->addCheckpoint('activation', $activationCheckpoint);
         $sentinel->addCheckpoint('throttle', $throttleCheckpoint);
 
-        $sentinel->bypassCheckpoints(function ($sentinel) {
-            $sentinel->check();
-        });
+        $this->assertInstanceOf(
+            'Cartalyst\Sentinel\Users\UserInterface',
+            $sentinel->bypassCheckpoints(function ($sentinel) {
+                return $sentinel->check();
+            })
+        );
     }
 
     public function testBypassSpecificCheckpoint()

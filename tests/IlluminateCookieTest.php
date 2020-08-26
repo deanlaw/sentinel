@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -41,7 +41,7 @@ class IlluminateCookieTest extends PHPUnit_Framework_TestCase
         $cookie = new IlluminateCookie($request = m::mock('Illuminate\Http\Request'), $jar = m::mock('Illuminate\Cookie\CookieJar'), 'foo');
         $jar->shouldReceive('forever')->with('foo', 'bar')->once()->andReturn('cookie');
         $jar->shouldReceive('queue')->with('cookie')->once();
-        $cookie->put('bar');
+        $this->assertNull($cookie->put('bar'));
     }
 
     public function testGetWithQueuedCookie()
@@ -65,6 +65,6 @@ class IlluminateCookieTest extends PHPUnit_Framework_TestCase
         $cookie = new IlluminateCookie($request = m::mock('Illuminate\Http\Request'), $jar = m::mock('Illuminate\Cookie\CookieJar'), 'foo');
         $jar->shouldReceive('forget')->with('foo')->once()->andReturn('cookie');
         $jar->shouldReceive('queue')->with('cookie')->once();
-        $cookie->forget();
+        $this->assertNull($cookie->forget());
     }
 }

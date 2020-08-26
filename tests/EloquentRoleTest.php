@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Sentinel
- * @version    2.0.17
+ * @version    2.0.18
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
- * @copyright  (c) 2011-2017, Cartalyst LLC
+ * @copyright  (c) 2011-2019, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
@@ -70,6 +70,8 @@ class EloquentRoleTest extends PHPUnit_Framework_TestCase
         $role = m::mock('Cartalyst\Sentinel\Roles\EloquentRole[users]');
         $role->exists = true;
 
+        $this->addMockConnection($role);
+
         $role->getConnection()->getQueryGrammar()->shouldReceive('compileDelete');
         $role->getConnection()->getQueryGrammar()->shouldReceive('prepareBindingsForDelete')->andReturn([]);
         $role->getConnection()->shouldReceive('delete')->once();
@@ -78,13 +80,13 @@ class EloquentRoleTest extends PHPUnit_Framework_TestCase
 
         $users->shouldReceive('detach')->once();
 
-        $role->delete();
+        $this->assertTrue($role->delete());
     }
 
     protected function addMockConnection($model)
     {
         $model->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
-        $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
+        $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection')->makePartial());
         $model->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
         $model->getConnection()->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
     }
